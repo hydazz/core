@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import logging
 from typing import Any
 
@@ -282,6 +283,21 @@ class AdvantageAirZone(AdvantageAirZoneEntity, ClimateEntity):
     def target_temperature(self) -> float:
         """Return the target temperature."""
         return self._zone["setTemp"]
+
+    @property
+    def current_cover_position(self) -> int:
+        """Return vents current position as a percentage."""
+        if self._zone["state"] == ADVANTAGE_AIR_STATE_OPEN:
+            return self._zone["value"]
+        return 0
+
+    @property
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        """Return custom state attributes for the zone."""
+        return {
+            "is_myzone": self._zone["number"] == self._ac["myZone"],
+            "louver_position": f"{self.current_cover_position}%",
+        }
 
     async def async_turn_on(self) -> None:
         """Set the HVAC State to on."""
